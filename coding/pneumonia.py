@@ -1,50 +1,3 @@
-"""
-╔══════════════════════════════════════════════════════════════════════════════════╗
-║                                                                                  ║
-║        PneumoNet — ResNet50 Transfer Learning for Pneumonia Detection           ║
-║        Complete Single-File Implementation                                       ║
-║                                                                                  ║
-║  Features:                                                                       ║
-║    ✔ ResNet50 pretrained ImageNet feature extractor                              ║
-║    ✔ 2-Phase training (frozen base → fine-tune top 30 layers)                   ║
-║    ✔ Lung-ROI masking (Otsu + connected components)                              ║
-║    ✔ Data augmentation (rotation, zoom, flip, shift, brightness)                 ║
-║    ✔ Class-weighted loss for imbalanced data                                     ║
-║    ✔ Metrics: Accuracy, Precision, Recall, F1, Confusion Matrix, ROC/AUC        ║
-║    ✔ Grad-CAM explainability (conv5_block3_out)                                  ║
-║    ✔ SHAP DeepExplainer feature attribution                                      ║
-║    ✔ Training curve plots (Accuracy / Loss / AUC)                                ║
-║    ✔ Erase outputs utility                                                       ║
-║                                                                                  ║
-║  Dataset:                                                                        ║
-║    Kaggle: paultimothymooney/chest-xray-pneumonia                                ║
-║    data/train/NORMAL,  data/train/PNEUMONIA                                      ║
-║    data/val/NORMAL,    data/val/PNEUMONIA                                        ║
-║    data/test/NORMAL,   data/test/PNEUMONIA                                       ║
-║                                                                                  ║
-║  Usage:                                                                          ║
-║    # Full train + evaluate                                                       ║
-║    python pneumonet_complete.py --mode train --data_dir ./data                   ║
-║                                                                                  ║
-║    # Predict single image                                                        ║
-║    python pneumonet_complete.py --mode predict \                                 ║
-║        --model outputs/model/pneumonet_best.h5 \                                 ║
-║        --image path/to/xray.jpeg                                                 ║
-║                                                                                  ║
-║    # Predict + SHAP                                                              ║
-║    python pneumonet_complete.py --mode predict \                                 ║
-║        --model outputs/model/pneumonet_best.h5 \                                 ║
-║        --image path/to/xray.jpeg --data_dir ./data --shap                        ║
-║                                                                                  ║
-║    # Erase all outputs                                                           ║
-║    python pneumonet_complete.py --mode erase                                     ║
-║                                                                                  ║
-╚══════════════════════════════════════════════════════════════════════════════════╝
-"""
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  IMPORTS
-# ─────────────────────────────────────────────────────────────────────────────
 import os
 import sys
 import shutil
@@ -86,9 +39,6 @@ except ImportError:
     SHAP_AVAILABLE = False
     print("[info] shap not installed — SHAP disabled.  pip install shap")
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  GLOBAL CONFIG
-# ─────────────────────────────────────────────────────────────────────────────
 SEED        = 42
 IMG_SIZE    = 224
 CHANNELS    = 3
@@ -116,10 +66,6 @@ CMAP_GRADCAM = LinearSegmentedColormap.from_list(
     "pneumo_gradcam",
     ["#000000", "#0d2137", "#f39c12", "#e74c3c", "#ffffff"],
 )
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  PLOT STYLE
-# ─────────────────────────────────────────────────────────────────────────────
 def _apply_style():
     plt.style.use("dark_background")
     plt.rcParams.update({
@@ -134,12 +80,6 @@ def _apply_style():
         "grid.linestyle"   : "--",
         "font.family"      : "monospace",
     })
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 1 ── DATA PIPELINE
-# ══════════════════════════════════════════════════════════════════════════════
-
 def build_data_generators(data_dir: str, batch_size: int = BATCH_SIZE):
     """
     Build augmented train generator and clean val/test generators.
@@ -194,11 +134,6 @@ def build_data_generators(data_dir: str, batch_size: int = BATCH_SIZE):
     print(f"{'─'*58}\n")
     return train_gen, val_gen, test_gen
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 2 ── MODEL ARCHITECTURE
-# ══════════════════════════════════════════════════════════════════════════════
-
 def build_model(fine_tune: bool = False) -> tf.keras.Model:
     """
     Architecture
@@ -252,11 +187,6 @@ def compile_model(model: tf.keras.Model, lr: float) -> tf.keras.Model:
         ],
     )
     return model
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 3 ── TRAINING
-# ══════════════════════════════════════════════════════════════════════════════
 
 def _get_callbacks(model_path: str) -> list:
     return [
@@ -359,11 +289,6 @@ def run_training(data_dir: str,
 
     return best_model, test_gen
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 4 ── EVALUATION
-# ══════════════════════════════════════════════════════════════════════════════
-
 def run_evaluation(model: tf.keras.Model, test_gen) -> dict:
     """
     Compute and save all performance metrics.
@@ -412,11 +337,6 @@ def run_evaluation(model: tf.keras.Model, test_gen) -> dict:
     plot_roc_curve(fpr, tpr, roc_auc)
 
     return metrics
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 5 ── PERFORMANCE PLOTS
-# ══════════════════════════════════════════════════════════════════════════════
 
 def plot_training_curves(history: dict):
     """
@@ -537,10 +457,6 @@ def plot_roc_curve(fpr, tpr, roc_auc):
     print(f"  [plot] ROC curve        → {path}")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 6 ── PREPROCESSING  (Lung ROI Mask)
-# ══════════════════════════════════════════════════════════════════════════════
-
 def apply_lung_roi_mask(image: np.ndarray) -> np.ndarray:
     """
     Isolate lung regions using Otsu thresholding + morphology.
@@ -600,11 +516,6 @@ def load_and_preprocess(image_path: str) -> tuple:
     img_array   = preprocess_input(img_display.astype(np.float32))
     img_array   = np.expand_dims(img_array, axis=0)
     return img_array, img_display
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 7 ── GRAD-CAM
-# ══════════════════════════════════════════════════════════════════════════════
 
 class GradCAM:
     """
@@ -667,11 +578,6 @@ class GradCAM:
         blended  = ((1 - alpha) * img_display + alpha * colormap
                     ).clip(0, 255).astype(np.uint8)
         return blended
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 8 ── SHAP
-# ══════════════════════════════════════════════════════════════════════════════
 
 class SHAPAnalyzer:
     """
@@ -778,11 +684,6 @@ def _load_background_images(data_dir: str, n: int = 50) -> np.ndarray:
         arr, _ = load_and_preprocess(str(f))
         bg.append(arr[0])
     return np.array(bg, dtype=np.float32)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 9 ── PREDICTION PIPELINE
-# ══════════════════════════════════════════════════════════════════════════════
 
 def predict_image(model_path: str,
                   image_path: str,
@@ -941,11 +842,6 @@ def _save_gradcam_figure(original, roi_masked, heatmap, overlay,
     plt.close(fig)
     print(f"  [plot] Grad-CAM figure  → {save_path}")
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 10 ── ERASE OUTPUTS
-# ══════════════════════════════════════════════════════════════════════════════
-
 def erase_outputs(target: str = "all", confirm: bool = False):
     """
     Delete generated files.
@@ -1008,11 +904,6 @@ def _print_tree(root: Path):
             print(f"    {str(rel):<50} {mb:>6.2f} MB")
     print(f"    {'─'*58}")
     print(f"    Total: {total_mb:.2f} MB\n")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SECTION 11 ── CLI ENTRY POINT
-# ══════════════════════════════════════════════════════════════════════════════
 
 def _parse_args():
     p = argparse.ArgumentParser(
