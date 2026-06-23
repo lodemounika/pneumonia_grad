@@ -1,11 +1,8 @@
 # 🫁 PneumoFusion
 
 > *Teaching a computer to look at chest X-rays and vital signs the way a doctor does — together, not separately.*
+> <img width="1659" height="1059" alt="image" src="https://github.com/user-attachments/assets/625f95d4-92b4-40bf-95e6-e1dfc5dfbeba" />
 
-<div align="center">
-  <img src="<img width="1659" height="1059" alt="image" src="https://github.com/user-attachments/assets/5ed7f41d-3626-4d9d-9da3-1ab68c7cf359" />
-
----
 
 ## So, what is this?
 
