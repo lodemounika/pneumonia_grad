@@ -3,13 +3,7 @@
 > *Teaching a computer to look at chest X-rays and vital signs the way a doctor does — together, not separately.*
 
 <div align="center">
-  <img src="screenshots/banner.png" alt="PneumoFusion Banner" width="100%">
-</div>
-<p align="center">
-  <img src="screenshots/architecture.png" alt="System Architecture" width="700">
-  <br>
-  <i>X-ray and vitals are processed separately, then fused into one decision</i>
-</p>
+  <img src="<img width="1659" height="1059" alt="image" src="https://github.com/user-attachments/assets/5ed7f41d-3626-4d9d-9da3-1ab68c7cf359" />
 
 ---
 
